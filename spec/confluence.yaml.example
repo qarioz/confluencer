@@ -5,7 +5,7 @@
     :password:      jessica
     :space:         confluencer
     :page_title:    Confluencer RSpec Test Page
-    
+
 # Log4r configuration
 log4r_config:
     pre_config:
@@ -26,7 +26,7 @@ log4r_config:
     # outputters
     outputters:
       - type     : StdoutOutputter
-        name     : stdout 
+        name     : stdout
         level    : DEBUG
         formatter:
           type        : PatternFormatter

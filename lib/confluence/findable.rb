@@ -13,7 +13,7 @@ module Confluence
         case args
         when :all
           find_all
-        when Hash 
+        when Hash
           find_criteria(args)
         end
       rescue Confluence::Error

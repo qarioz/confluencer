@@ -23,7 +23,7 @@ end
 
 module SessionHelperMethods
   include ConfigurationHelperMethods
-  
+
   def new_session
     if block_given?
       # initialize session and yield
@@ -37,11 +37,11 @@ end
 
 module PageHelperMethods
   include SessionHelperMethods
-  
+
   def create_test_page(content = "foobar")
     Confluence::Page.new :space => config[:space], :title => config[:page_title], :content => content
   end
-    
+
   def with_test_page
     new_session do
       begin
@@ -53,4 +53,4 @@ module PageHelperMethods
       end
     end
   end
-end  
+end

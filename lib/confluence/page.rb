@@ -1,38 +1,38 @@
 module Confluence
   class Page < Record
     INVALID_TITLE_CHARS = ":@/\\|^#;[]{}<>"
-    
+
     class Details < Hash
       REGEXP = /\{details:label=([^\}]+)\}([^\{}]*)\{details\}/m
       PAIR_REGEXP = /([^:]+):([^\n]+)/m
-      
+
       attr_reader :label
-      
+
       def initialize(args)
         @label = args[:label]
-        
+
         parse(args[:content])
       end
-            
+
       def to_s
         # details macro
         content = "{details:label=#{label}}\n"
-        
+
         each_pair do |key, value|
           content << "#{key}:#{value}\n"
         end
-        
+
         # end of details macro
         content << "{details}\n"
       end
-      
+
       private
-      
+
       def parse(content)
         if content && content =~ REGEXP
           # match label and the key/value pairs
           @label, pairs = content.match(REGEXP).captures
-        
+
           pairs.strip.lines.each do |line|
             if line =~ PAIR_REGEXP
               self[$1.to_sym] = $2.strip
@@ -41,7 +41,7 @@ module Confluence
         end
       end
     end
-    
+
     class DetailsCollection < Hash
       def initialize(content)
         if content
@@ -51,18 +51,18 @@ module Confluence
           end
         end
       end
-      
+
       def [](key)
         super(key) or self[key] = Details.new(:label => key)
       end
-      
+
       def to_s
         values.join("\n")
       end
-    end  
-    
+    end
+
     extend Findable
-    
+
     record_attr_accessor :id => :page_id
     record_attr_accessor :parentId => :parent_id
     record_attr_accessor :space
@@ -71,32 +71,32 @@ module Confluence
     record_attr_accessor :url
 
     attr_accessor :details
-    
+
     def initialize(hash)
       super(hash)
 
       @details = DetailsCollection.new(content)
     end
-        
+
     def children(klass = self.class)
       children = client.getChildren(page_id)
       children.collect { |hash| klass.find(:id => hash["id"]) } if children
     end
-    
+
     def attachments
       attachments = client.getAttachments(page_id)
       attachments.collect { |hash| Attachment.new(hash) } if attachments
     end
-    
+
     def store(args = {})
       unless self.version
         # check for existing page by id or title
         existing_page = if page_id
-          Page.find :id => page_id
-        else
-          Page.find :space => space, :title => title
-        end
-        
+                          Page.find :id => page_id
+                        else
+                          Page.find :space => space, :title => title
+                        end
+
         # take page_id and version from existing page if available
         if existing_page
           if args[:recreate_if_exists]
@@ -109,40 +109,40 @@ module Confluence
           end
         end
       end
-      
+
       # reinitialize page after storing it
       initialize(client.storePage(self.to_hash))
-      
+
       # return self
       self
     end
-    
+
     def remove
       client.removePage(page_id)
     end
-        
+
     def add_attachment(filename, content_type, data = IO.read(filename), comment = "")
       attachment = Attachment.new :pageId => page_id, :fileName => filename, :contentType => content_type, :comment => comment
       attachment.data = data
       attachment.store
     end
-    
+
     def to_hash
       # record hash
       record_hash = super
-      
+
       # always include content in hash
       record_hash["content"] ||= ""
-      
+
       # prepend details sections before content
       record_hash["content"].insert(0, details.to_s)
-      
+
       # result
       record_hash
     end
 
     private
-    
+
     def self.find_criteria(args)
       if args.key? :id
         self.new(client.getPage(args[:id]))
