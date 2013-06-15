@@ -1,18 +1,129 @@
 = confluencer
 
-Easy to use, ActiveRecord-like classes to find spaces, pages and bookmarks as well as adding new ones and updating existing ones. Very much work in progress, every version will most likely break your code. I will update the README when the codebase is more stable.
+Easy to use, ActiveRecord-like classes to find spaces, pages and bookmarks as well as adding new ones and updating existing ones.
+It uses ruby's method missing to translate methods to Confluence XMLRPC API (v2) call.
 
-Uses the Confluence XMLRPC API (v1).
+For Confluence XML RPC API documentation, please take a look at these links:
+{Confluence XML-RPC and SOAP APIs}[https://developer.atlassian.com/display/CONFDEV/Confluence+XML-RPC+and+SOAP+APIs]
+{Remote Confluence Data Objects}[https://developer.atlassian.com/display/CONFDEV/Remote+Confluence+Data+Objects]
+{https://developer.atlassian.com/display/CONFDEV/Remote+Confluence+Methods}[https://developer.atlassian.com/display/CONFDEV/Remote+Confluence+Methods]
 
-== Note on Patches/Pull Requests
- 
-* Fork the project.
-* Make your feature addition or bug fix.
-* Add tests for it. This is important so I don't break it in a
-  future version unintentionally.
-* Commit, do not mess with rakefile, version, or history.
-  (if you want to have your own version, that is fine but bump version in a commit by itself I can ignore when I pull)
-* Send me a pull request. Bonus points for topic branches.
+== Installation
+
+Clone the repository, build the gem, install the gem.
+
+    git clone git://github.com/qarioz/confluencer.git
+    cd confluencer
+    gem install jeweler log4r
+    gem build confluencer.gemspec
+    gem install qarioz-confluencer-0.5.1.gem
+
+Or if you are using Gemfile, add this to your Gemfile
+
+    gem 'qarioz-confluencer', :git => 'git://github.com/qarioz/confluencer.git'
+
+== Usage
+
+This is the usage example for confluencer
+
+    require 'confluencer'
+    begin
+      #login
+      client = Confluence::Client.new(url: "https://mywiki.atlassian.net/wiki/")
+      client.login("username", "password")
+      # no need to save resulting token; api handles it
+
+      # get all spaces
+      all_spaces = client.get_spaces
+      # => [{'url', 'name', 'key', 'type'}]
+
+      # get specific space
+      test_space = client.get_space( "TestSpace")
+      # => {'url', 'name', 'key', 'type', 'homepage'}
+
+      # create a new space
+      s = Confluence::Space.new
+      # => {}
+
+      # get pages from a space
+      ps = client.get_pages( "TestSpace")
+      # => [{ 'url', 'id', 'version', 'title', 'space', 'parentId', 'permissions'}]
+      page_id = ps[0]['id'] # => "8345678"
+      pidcl = page_id.class # => String
+
+      # get comments from a page
+      comments = client.get_comments( page_id)
+      # => [{ 'modifier', 'creator', 'content', 'title',
+      #       'parentId', 'id', 'pageId', 'modified', 'url', 'created'}]
+
+      # create a comment
+      new_comment = client.add_comment( {pageId: page_id, title: "ruby sez", content: "blah blah blah"})
+
+      # create a label for a page
+      label = client.add_label_by_name( "new-label", page_id)
+      # => true
+
+      #update a page
+      npage = client.store_page(
+          space: "TestSpace", title: "yapage29", content: "Here is the content, also from ruby")
+      # => {'id', 'current', 'content', 'title', 'version', 'modifier',
+      #     'url', 'homePage', 'creator', 'contentStatus', 'modified',
+      #     'created', 'space', 'parentId', 'permissions'}
+      # if "yapage29" exists, throws {Confluence::Error}Could not save or update record
+    rescue Exception => e
+      puts "error: " + e.to_s
+    end
+
+=== Troubleshooting
+==== SSL Problem
+
+If you get SSL Problem while using this gem on windows, follow the steps below to fix it.
+
+    Uncaught exception: SSL_connect returned=1 errno=0 state=SSLv3 read server certificate B: certificate verify failed
+
+This assumes your have already installed the [Rails Installer](http://railsinstaller.org) for Windows.
+
+Download the ruby script to your *Desktop* folder from [https://gist.github.com/raw/867550/win_fetch_cacerts.rb](https://gist.github.com/raw/867550/win_fetch_cacerts.rb). Then in your command prompt, execute the ruby script:
+
+    ruby "%USERPROFILE%\Desktop\win_fetch_cacerts.rb"
+
+Or copy paste the script below:
+
+    require 'net/http'
+
+    # create a path to the file "C:\RailsInstaller\cacert.pem"
+    cacert_file = File.join(%w{c: RailsInstaller cacert.pem})
+
+    Net::HTTP.start("curl.haxx.se") do |http|
+      resp = http.get("/ca/cacert.pem")
+      if resp.code == "200"
+        open(cacert_file, "wb") { |file| file.write(resp.body) }
+        puts "\n\nA bundle of certificate authorities has been installed to"
+        puts "C:\\RailsInstaller\\cacert.pem\n"
+        puts "* Please set SSL_CERT_FILE in your current command prompt session with:"
+        puts "     set SSL_CERT_FILE=C:\\RailsInstaller\\cacert.pem"
+        puts "* To make this a permanent setting, add it to Environment Variables"
+        puts "  under Control Panel -> Advanced -> Environment Variables"
+      else
+        abort "\n\n>>>> A cacert.pem bundle could not be downloaded."
+      end
+    end
+
+Now make ruby aware of your certificate authority bundle by setting `SSL_CERT_FILE`. To set this in your current command prompt session, type:
+
+    set SSL_CERT_FILE=C:\RailsInstaller\cacert.pem
+
+To make this a permanent setting, add this in your [control panel](http://www.microsoft.com/resources/documentation/windows/xp/all/proddocs/en-us/environment_variables.mspx?mfr=true).
+
+==== The Manual Way (Boring)
+
+Download the `cacert.pem` file from [http://curl.haxx.se/ca/cacert.pem](http://curl.haxx.se/ca/cacert.pem). Save this file to `C:\RailsInstaller\cacert.pem`.
+
+Now make ruby aware of your certificate authority bundle by setting `SSL_CERT_FILE`. To set this in your current command prompt session, type:
+
+    set SSL_CERT_FILE=C:\RailsInstaller\cacert.pem
+
+To make this a permanent setting, add this in your [control panel](http://www.microsoft.com/resources/documentation/windows/xp/all/proddocs/en-us/environment_variables.mspx?mfr=true).
 
 == Copyright
 
