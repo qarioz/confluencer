@@ -4,11 +4,11 @@
 # -*- encoding: utf-8 -*-
 lib = File.expand_path('../lib/', __FILE__)
 $:.unshift lib unless $:.include?(lib)
- 
+
 require 'confluencer'
 
 Gem::Specification.new do |s|
-  s.name = %q{confluencer}
+  s.name = %q{qarioz-confluencer}
   s.version = Confluencer::VERSION
   s.platform    = Gem::Platform::RUBY
   s.required_rubygems_version = ">= 1.3.6"
