@@ -21,7 +21,7 @@ Clone the repository, build the gem, install the gem.
     cd confluencer
     gem install jeweler log4r
     gem build confluencer.gemspec
-    gem install qarioz-confluencer-0.5.1.gem
+    gem install qarioz-confluencer-0.6.0.gem
 === Include in Gemfile
 Or if you are using Gemfile, add this to your Gemfile
 
