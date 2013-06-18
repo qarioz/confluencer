@@ -4,8 +4,11 @@ Easy to use, ActiveRecord-like classes to find spaces, pages and bookmarks as we
 It uses ruby's method missing to translate methods to Confluence XMLRPC API (v2) call.
 
 For Confluence XML RPC API documentation, please take a look at these links:  
+
 {Confluence XML-RPC and SOAP APIs}[https://developer.atlassian.com/display/CONFDEV/Confluence+XML-RPC+and+SOAP+APIs]  
+
 {Remote Confluence Data Objects}[https://developer.atlassian.com/display/CONFDEV/Remote+Confluence+Data+Objects]  
+
 {https://developer.atlassian.com/display/CONFDEV/Remote+Confluence+Methods}[https://developer.atlassian.com/display/CONFDEV/Remote+Confluence+Methods]  
 
 == Installation
