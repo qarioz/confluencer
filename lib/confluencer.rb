@@ -19,5 +19,5 @@ require 'confluence/blog_entry'
 require 'confluence/attachment'
 
 module Confluencer
-  VERSION = "0.5.1"
+  VERSION = "0.6.0"
 end
