@@ -5,7 +5,7 @@
 lib = File.expand_path('../lib/', __FILE__)
 $:.unshift lib unless $:.include?(lib)
 
-require 'confluencer'
+require 'confluence/version'
 
 Gem::Specification.new do |s|
   s.name = %q{qarioz-confluencer}

@@ -17,7 +17,4 @@ require 'confluence/page'
 require 'confluence/bookmark'
 require 'confluence/blog_entry'
 require 'confluence/attachment'
-
-module Confluencer
-  VERSION = "0.6.0"
-end
+require 'confluence/version'
